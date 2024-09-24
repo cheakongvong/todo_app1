@@ -23,7 +23,6 @@ class _TodoListScreenState extends State<TodoListScreen> {
   Widget build(BuildContext context) {
     final todoProvider = Provider.of<TodoProvider>(context);
 
-    // Listen to Firestore collection 'todos' and keep the UI updated in real-time
     return StreamBuilder<QuerySnapshot>(
       stream: FirebaseFirestore.instance.collection('todos').snapshots(),
       builder: (context, snapshot) {
@@ -31,17 +30,15 @@ class _TodoListScreenState extends State<TodoListScreen> {
           return const Center(child: CircularProgressIndicator());
         }
 
-        // Build todo list from Firestore data
         final todos = snapshot.data!.docs.map((doc) {
           final data = doc.data() as Map<String, dynamic>;
           return Todo(
             title: data['title'],
             isCompleted: data['isCompleted'] ?? false,
-            id: doc.id, // Store Firestore document ID
+            id: doc.id,
           );
         }).toList();
 
-        // Filter todos based on the search query
         final filteredTodos = todoProvider.todos
             .where((todo) =>
                 todo.title.toLowerCase().contains(searchQuery.toLowerCase()))
@@ -177,8 +174,7 @@ class _TodoListScreenState extends State<TodoListScreen> {
                           ),
                           onChanged: (value) {
                             setState(() {
-                              searchQuery =
-                                  value; // Update search query on every change
+                              searchQuery = value;
                             });
                           },
                           onSubmitted: (value) {
@@ -197,11 +193,9 @@ class _TodoListScreenState extends State<TodoListScreen> {
                                 editingIndex = null;
                               });
                             } else {
-                              todoProvider
-                                  .addTodo(value.trim()); // Add new task
+                              todoProvider.addTodo(value.trim());
                               setState(() {
-                                searchQuery =
-                                    ''; // Clear search after adding a new task
+                                searchQuery = '';
                               });
                             }
                             _controller.clear();
@@ -229,10 +223,11 @@ class _TodoListScreenState extends State<TodoListScreen> {
                               });
                               _controller.clear();
                             }).catchError((error) {
-                              print('Failed to update todo: $error');
+                              debugPrint('Failed to update todo: $error');
                             });
                           },
                           style: ElevatedButton.styleFrom(
+                            minimumSize: const Size(70, 50),
                             backgroundColor: AppColors.primaryColor,
                           ),
                           child: const Text('Update'),
