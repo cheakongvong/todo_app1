@@ -177,27 +177,31 @@ class _TodoListScreenState extends State<TodoListScreen> {
                           ),
                           onChanged: (value) {
                             setState(() {
-                              searchQuery = value;
+                              searchQuery =
+                                  value; // Update search query on every change
                             });
                           },
                           onSubmitted: (value) {
+                            if (value.trim().isEmpty) return;
+
                             if (isEditing && editingIndex != null) {
-                              FirebaseFirestore.instance
-                                  .collection('todos')
-                                  .doc(filteredTodos[editingIndex!].id)
-                                  .update({
-                                'title': value,
-                              });
+                              final todoId =
+                                  todoProvider.todos[editingIndex!].id;
+                              todoProvider.updateTodo(
+                                todoId,
+                                value.trim(),
+                                todoProvider.todos[editingIndex!].isCompleted,
+                              );
                               setState(() {
                                 isEditing = false;
                                 editingIndex = null;
                               });
                             } else {
-                              FirebaseFirestore.instance
-                                  .collection('todos')
-                                  .add({
-                                'title': value,
-                                'isCompleted': false,
+                              todoProvider
+                                  .addTodo(value.trim()); // Add new task
+                              setState(() {
+                                searchQuery =
+                                    ''; // Clear search after adding a new task
                               });
                             }
                             _controller.clear();
