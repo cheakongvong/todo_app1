@@ -50,192 +50,199 @@ class _TodoListScreenState extends State<TodoListScreen> {
             title: const Text('ToDo List'),
             backgroundColor: AppColors.primaryColor,
           ),
-          body: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 10.0),
-            child: Column(
-              children: [
-                Expanded(
-                  child: filteredTodos.isEmpty
-                      ? const Center(
-                          child: Text(
-                            'No result. Create a new one instead',
-                            style: TextStyle(
-                              fontFamily: 'Poppins',
-                              color: Colors.grey,
-                              fontSize: 16,
+          body: WillPopScope(
+            onWillPop: () async {
+              return Future.value(false);
+            },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 10.0),
+              child: Column(
+                children: [
+                  Expanded(
+                    child: filteredTodos.isEmpty
+                        ? const Center(
+                            child: Text(
+                              'No result. Create a new one instead',
+                              style: TextStyle(
+                                fontFamily: 'Poppins',
+                                color: Colors.grey,
+                                fontSize: 16,
+                              ),
                             ),
-                          ),
-                        )
-                      : ListView.separated(
-                          itemCount: filteredTodos.length,
-                          itemBuilder: (context, index) {
-                            final todo = filteredTodos[index];
-                            return Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 10.0),
-                              child: Container(
-                                padding: const EdgeInsets.all(5),
-                                decoration: BoxDecoration(
-                                  color: AppColors.primaryColor,
-                                  border:
-                                      Border.all(color: AppColors.primaryColor),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: Row(
-                                  children: [
-                                    Expanded(
-                                      child: ListTile(
-                                        title: Text(
-                                          todo.title,
-                                          style: TextStyle(
-                                            color: Colors.white,
-                                            decoration: todo.isCompleted
-                                                ? TextDecoration.lineThrough
-                                                : TextDecoration.none,
+                          )
+                        : ListView.separated(
+                            itemCount: filteredTodos.length,
+                            itemBuilder: (context, index) {
+                              final todo = filteredTodos[index];
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 10.0),
+                                child: Container(
+                                  padding: const EdgeInsets.all(5),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primaryColor,
+                                    border: Border.all(
+                                        color: AppColors.primaryColor),
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  child: Row(
+                                    children: [
+                                      Expanded(
+                                        child: ListTile(
+                                          title: Text(
+                                            todo.title,
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              decoration: todo.isCompleted
+                                                  ? TextDecoration.lineThrough
+                                                  : TextDecoration.none,
+                                            ),
+                                          ),
+                                          leading: Checkbox(
+                                            value: todo.isCompleted,
+                                            onChanged: (value) {
+                                              todoProvider
+                                                  .toggleTodoStatus(index);
+                                            },
                                           ),
                                         ),
-                                        leading: Checkbox(
-                                          value: todo.isCompleted,
-                                          onChanged: (value) {
-                                            todoProvider
-                                                .toggleTodoStatus(index);
-                                          },
+                                      ),
+                                      IconButton(
+                                        onPressed: () {
+                                          // Remove task
+                                          FirebaseFirestore.instance
+                                              .collection('todos')
+                                              .doc(todo.id)
+                                              .delete();
+                                        },
+                                        icon: const Icon(
+                                          Icons.delete,
+                                          color: Colors.white,
                                         ),
                                       ),
-                                    ),
-                                    IconButton(
-                                      onPressed: () {
-                                        // Remove task
-                                        FirebaseFirestore.instance
-                                            .collection('todos')
-                                            .doc(todo.id)
-                                            .delete();
-                                      },
-                                      icon: const Icon(
-                                        Icons.delete,
-                                        color: Colors.white,
+                                      IconButton(
+                                        onPressed: () {
+                                          setState(() {
+                                            _controller.text = todo.title;
+                                            isEditing = true;
+                                            editingIndex = index;
+                                          });
+                                        },
+                                        icon: const Icon(
+                                          Icons.edit,
+                                          color: Colors.white,
+                                        ),
                                       ),
-                                    ),
-                                    IconButton(
-                                      onPressed: () {
-                                        setState(() {
-                                          _controller.text = todo.title;
-                                          isEditing = true;
-                                          editingIndex = index;
-                                        });
-                                      },
-                                      icon: const Icon(
-                                        Icons.edit,
-                                        color: Colors.white,
-                                      ),
-                                    ),
-                                  ],
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                            separatorBuilder:
+                                (BuildContext context, int index) {
+                              return const SizedBox(
+                                height: 10,
+                              );
+                            },
+                          ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _controller,
+                            decoration: InputDecoration(
+                              hintText: 'Search or enter new task',
+                              labelText:
+                                  isEditing ? 'Edit task' : 'Search/Add task',
+                              labelStyle: TextStyle(
+                                fontFamily: 'Poppins',
+                                color: AppColors.textColor,
+                                fontSize: 14,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(7.0),
+                                borderSide: BorderSide(
+                                  width: 1,
+                                  color: AppColors.primaryColor,
                                 ),
                               ),
-                            );
-                          },
-                          separatorBuilder: (BuildContext context, int index) {
-                            return const SizedBox(
-                              height: 10,
-                            );
-                          },
-                        ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(10.0),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: _controller,
-                          decoration: InputDecoration(
-                            hintText: 'Search or enter new task',
-                            labelText:
-                                isEditing ? 'Edit task' : 'Search/Add task',
-                            labelStyle: TextStyle(
-                              fontFamily: 'Poppins',
-                              color: AppColors.textColor,
-                              fontSize: 14,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(7.0),
-                              borderSide: BorderSide(
-                                width: 1,
-                                color: AppColors.primaryColor,
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(7.0),
+                                borderSide: BorderSide(
+                                  width: 1.5,
+                                  color: AppColors.primaryColor,
+                                ),
                               ),
                             ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(7.0),
-                              borderSide: BorderSide(
-                                width: 1.5,
-                                color: AppColors.primaryColor,
-                              ),
-                            ),
-                          ),
-                          onChanged: (value) {
-                            setState(() {
-                              searchQuery = value;
-                            });
-                          },
-                          onSubmitted: (value) {
-                            if (value.trim().isEmpty) return;
+                            onChanged: (value) {
+                              setState(() {
+                                searchQuery = value;
+                              });
+                            },
+                            onSubmitted: (value) {
+                              if (value.trim().isEmpty) return;
 
-                            if (isEditing && editingIndex != null) {
+                              if (isEditing && editingIndex != null) {
+                                final todoId =
+                                    todoProvider.todos[editingIndex!].id;
+                                todoProvider.updateTodo(
+                                  todoId,
+                                  value.trim(),
+                                  todoProvider.todos[editingIndex!].isCompleted,
+                                );
+                                setState(() {
+                                  isEditing = false;
+                                  editingIndex = null;
+                                });
+                              } else {
+                                todoProvider.addTodo(value.trim());
+                                setState(() {
+                                  searchQuery = '';
+                                });
+                              }
+                              _controller.clear();
+                            },
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        if (isEditing)
+                          ElevatedButton(
+                            onPressed: () {
+                              final inputText = _controller.text.trim();
+                              if (inputText.isEmpty) return;
+
                               final todoId =
                                   todoProvider.todos[editingIndex!].id;
-                              todoProvider.updateTodo(
-                                todoId,
-                                value.trim(),
-                                todoProvider.todos[editingIndex!].isCompleted,
-                              );
-                              setState(() {
-                                isEditing = false;
-                                editingIndex = null;
+                              FirebaseFirestore.instance
+                                  .collection('todos')
+                                  .doc(todoId)
+                                  .update({
+                                'title': inputText,
+                              }).then((_) {
+                                setState(() {
+                                  isEditing = false;
+                                  editingIndex = null;
+                                  searchQuery = '';
+                                });
+                                _controller.clear();
+                              }).catchError((error) {
+                                debugPrint('Failed to update todo: $error');
                               });
-                            } else {
-                              todoProvider.addTodo(value.trim());
-                              setState(() {
-                                searchQuery = '';
-                              });
-                            }
-                            _controller.clear();
-                          },
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      if (isEditing)
-                        ElevatedButton(
-                          onPressed: () {
-                            final inputText = _controller.text.trim();
-                            if (inputText.isEmpty) return;
-
-                            final todoId = todoProvider.todos[editingIndex!].id;
-                            FirebaseFirestore.instance
-                                .collection('todos')
-                                .doc(todoId)
-                                .update({
-                              'title': inputText,
-                            }).then((_) {
-                              setState(() {
-                                isEditing = false;
-                                editingIndex = null;
-                                searchQuery = '';
-                              });
-                              _controller.clear();
-                            }).catchError((error) {
-                              debugPrint('Failed to update todo: $error');
-                            });
-                          },
-                          style: ElevatedButton.styleFrom(
-                            minimumSize: const Size(70, 50),
-                            backgroundColor: AppColors.primaryColor,
+                            },
+                            style: ElevatedButton.styleFrom(
+                              minimumSize: const Size(70, 50),
+                              backgroundColor: AppColors.primaryColor,
+                            ),
+                            child: const Text('Update'),
                           ),
-                          child: const Text('Update'),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );
