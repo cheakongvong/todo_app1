@@ -1,3 +1,4 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_app1/screens/todo_list_screen.dart';
@@ -5,7 +6,9 @@ import 'package:todo_app1/screens/todo_list_screen.dart';
 import 'components/colors.dart';
 import 'todo_provider.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp();
   runApp(
     ChangeNotifierProvider(
       create: (context) => TodoProvider(),
@@ -22,10 +25,14 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       theme: ThemeData(
         checkboxTheme: CheckboxThemeData(
-          side: const BorderSide(color: Colors.white, width: 2),
+          shape: const RoundedRectangleBorder(borderRadius: BorderRadius.zero),
+          side: const BorderSide(
+            color: Colors.white,
+            width: 2,
+          ),
           fillColor: MaterialStateProperty.resolveWith((states) {
             if (states.contains(MaterialState.selected)) {
-              return Colors.green;
+              return AppColors.checkColor;
             }
             return Colors.transparent;
           }),
@@ -40,7 +47,7 @@ class MyApp extends StatelessWidget {
         ),
       ),
       debugShowCheckedModeBanner: false,
-      home: TodoListScreen(),
+      home: const TodoListScreen(),
     );
   }
 }
