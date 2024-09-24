@@ -36,8 +36,7 @@ class MyApp extends StatelessWidget {
             }
             return Colors.transparent;
           }),
-          checkColor:
-              MaterialStateProperty.all(Colors.white), // Check mark color
+          checkColor: MaterialStateProperty.all(Colors.white),
         ),
         colorSchemeSeed: AppColors.primaryColor,
         textTheme: const TextTheme(

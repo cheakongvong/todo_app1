@@ -50,6 +50,7 @@ class TodoProvider extends ChangeNotifier {
 
   Future<void> toggleTodoStatus(int index) async {
     final todo = _todos[index];
+
     todo.toggleCompleted();
 
     await FirebaseFirestore.instance.collection('todos').doc(todo.id).update({
