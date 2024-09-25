@@ -150,60 +150,63 @@ class _TodoListScreenState extends State<TodoListScreen> {
                     children: [
                       Expanded(
                         child: TextField(
-                          controller: _controller,
-                          decoration: InputDecoration(
-                            hintText: 'Search or enter new task',
-                            labelText:
-                                isEditing ? 'Edit task' : 'Search/Add task',
-                            labelStyle: TextStyle(
-                              fontFamily: 'Poppins',
-                              color: AppColors.textColor,
-                              fontSize: 14,
-                            ),
-                            enabledBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(7.0),
-                              borderSide: BorderSide(
-                                width: 1,
-                                color: AppColors.primaryColor,
+                            controller: _controller,
+                            decoration: InputDecoration(
+                              hintText: 'Search or enter new task',
+                              labelText:
+                                  isEditing ? 'Edit task' : 'Search/Add task',
+                              labelStyle: TextStyle(
+                                fontFamily: 'Poppins',
+                                color: AppColors.textColor,
+                                fontSize: 14,
+                              ),
+                              enabledBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(7.0),
+                                borderSide: BorderSide(
+                                  width: 1,
+                                  color: AppColors.primaryColor,
+                                ),
+                              ),
+                              focusedBorder: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(7.0),
+                                borderSide: BorderSide(
+                                  width: 1.5,
+                                  color: AppColors.primaryColor,
+                                ),
                               ),
                             ),
-                            focusedBorder: OutlineInputBorder(
-                              borderRadius: BorderRadius.circular(7.0),
-                              borderSide: BorderSide(
-                                width: 1.5,
-                                color: AppColors.primaryColor,
-                              ),
-                            ),
-                          ),
-                          onChanged: (value) {
-                            setState(() {
-                              searchQuery = value;
-                            });
-                          },
-                          onSubmitted: (value) {
-                            if (value.trim().isEmpty) return;
+                            onChanged: (value) {
+                              setState(() {
+                                searchQuery = value;
+                              });
+                            },
+                            onSubmitted: (value) async {
+                              if (isEditing && editingIndex != null) {
+                                // If editing, update the existing todo
+                                final todoId =
+                                    todoProvider.todos[editingIndex!].id;
+                                todoProvider.updateTodo(
+                                  todoId,
+                                  value.trim(),
+                                  todoProvider.todos[editingIndex!].isCompleted,
+                                );
+                                setState(() {
+                                  isEditing = false;
+                                  editingIndex = null;
+                                });
+                              } else {
+                                // Add new todo with context for SnackBar
+                                await todoProvider.addTodo(
+                                    context, value.trim());
 
-                            if (isEditing && editingIndex != null) {
-                              final todoId =
-                                  todoProvider.todos[editingIndex!].id;
-                              todoProvider.updateTodo(
-                                todoId,
-                                value.trim(),
-                                todoProvider.todos[editingIndex!].isCompleted,
-                              );
-                              setState(() {
-                                isEditing = false;
-                                editingIndex = null;
-                              });
-                            } else {
-                              todoProvider.addTodo(value.trim());
-                              setState(() {
-                                searchQuery = '';
-                              });
-                            }
-                            _controller.clear();
-                          },
-                        ),
+                                // Clear search query after adding a new task
+                                setState(() {
+                                  searchQuery = '';
+                                });
+                              }
+
+                              _controller.clear();
+                            }),
                       ),
                       const SizedBox(width: 10),
                       if (isEditing)

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:todo_app1/components/colors.dart';
 
 import 'models/data.dart';
 
@@ -22,7 +23,7 @@ class TodoProvider extends ChangeNotifier {
         var data = doc.data();
         _todos.add(Todo(
           title: data['title'],
-          isCompleted: data['isCompleted'],
+          isCompleted: data['isCompleted'] ?? false,
           id: doc.id,
         ));
       }
@@ -30,16 +31,49 @@ class TodoProvider extends ChangeNotifier {
     });
   }
 
-  Future<void> addTodo(String title) async {
+  Future<void> addTodo(BuildContext context, String title) async {
+    title = title.trim();
+
+    if (title.isEmpty) {
+      showSnackBar(context, 'Cannot add an empty task');
+      return;
+    }
+
+    bool isDuplicate =
+        _todos.any((todo) => todo.title.toLowerCase() == title.toLowerCase());
+    if (isDuplicate) {
+      showSnackBar(context, 'Cannot add duplicate task');
+      return;
+    }
+
     await FirebaseFirestore.instance.collection('todos').add({
       'title': title,
-      'isCompleted': false,
+      'isCompleted': false, // New todos are incomplete by default
     });
   }
 
+  // Show a SnackBar
+  void showSnackBar(BuildContext context, String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        backgroundColor: AppColors.alertColor,
+        duration: const Duration(seconds: 1),
+        content: Text(
+          message,
+          style: const TextStyle(color: Colors.white, fontFamily: 'Poppins'),
+        ),
+      ),
+    );
+  }
+
   Future<void> updateTodo(String id, String title, bool isCompleted) async {
+    if (title.trim().isEmpty) {
+      debugPrint('Cannot update a todo with an empty title');
+      return;
+    }
+
     await FirebaseFirestore.instance.collection('todos').doc(id).update({
-      'title': title,
+      'title': title.trim(),
       'isCompleted': isCompleted,
     });
   }
@@ -50,7 +84,6 @@ class TodoProvider extends ChangeNotifier {
 
   Future<void> toggleTodoStatus(int index) async {
     final todo = _todos[index];
-
     todo.toggleCompleted();
 
     await FirebaseFirestore.instance.collection('todos').doc(todo.id).update({
